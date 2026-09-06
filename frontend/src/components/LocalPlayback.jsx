@@ -49,7 +49,7 @@ export default function LocalPlayback({ recording }) {
       </p>
       {objectUrl ? <audio controls src={objectUrl} /> : null}
       <button type="button" className="download-link" onClick={handleDownload}>
-        下载录音文件（供后续上传测试）
+        下载本次录音
       </button>
     </section>
   );

@@ -43,6 +43,23 @@ class Settings(BaseSettings):
     extract_upstream_timeout_s: float = 15.0
     extract_max_tokens: int = 512
 
+    amap_geocode_url: str = "https://restapi.amap.com/v3/geocode/geo"
+    amap_around_url: str = "https://restapi.amap.com/v3/place/around"
+    amap_upstream_timeout_s: float = 5.0
+    search_total_timeout_s: float = 18.0
+    geo_merge_max_m: float = 80.0
+    poi_first_radius_m: int = 2000
+    poi_expand_radius_m: int = 5000
+    poi_max_results: int = 3
+    poi_fetch_size: int = 20
+
+    public_base_url: str = "http://localhost:8003"
+    reply_upstream_timeout_s: float = 12.0
+    reply_max_tokens: int = 256
+    tts_upstream_timeout_s: float = 10.0
+    tts_download_timeout_s: float = 8.0
+    finalize_total_timeout_s: float = 32.0
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [item.strip() for item in self.cors_origins.split(",") if item.strip()]

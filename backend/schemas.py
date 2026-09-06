@@ -61,6 +61,51 @@ class ExtractResponse(BaseModel):
     data: ExtractData
 
 
+class SearchRequest(BaseModel):
+    city_a: str = Field(min_length=1)
+    address_a: str = Field(min_length=1)
+    city_b: str = Field(min_length=1)
+    address_b: str = Field(min_length=1)
+    category: str = Field(min_length=1)
+
+
+class Midpoint(BaseModel):
+    longitude: float
+    latitude: float
+
+
+class PoiItem(BaseModel):
+    name: str
+    address: str
+    distance_to_midpoint_m: float
+
+
+class SearchData(BaseModel):
+    search_id: str
+    midpoint: Midpoint
+    pois: list[PoiItem]
+
+
+class SearchResponse(BaseModel):
+    request_id: str
+    data: SearchData
+
+
+class FinalizeRequest(BaseModel):
+    search_id: str
+
+
+class FinalizeData(BaseModel):
+    reply_text: str
+    audio_url: str | None
+    warning: str | None = None
+
+
+class FinalizeResponse(BaseModel):
+    request_id: str
+    data: FinalizeData
+
+
 class ExtractModelOutput(BaseModel):
     model_config = ConfigDict(strict=True, extra="ignore")
 

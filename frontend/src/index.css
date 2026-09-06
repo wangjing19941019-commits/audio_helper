@@ -103,3 +103,69 @@ h2 {
 .hint {
   color: #5c5c5c;
 }
+
+.result-block {
+  margin-top: 1.25rem;
+  padding: 1rem 1.1rem;
+  border-radius: 0.6rem;
+  background: #fff;
+}
+
+.extract-list {
+  margin: 0;
+}
+
+.extract-list div {
+  display: grid;
+  grid-template-columns: 5rem 1fr;
+  gap: 0.35rem 0.75rem;
+  margin: 0.35rem 0;
+}
+
+.extract-list dt {
+  margin: 0;
+  color: #5c5c5c;
+}
+
+.extract-list dd {
+  margin: 0;
+}
+
+.poi-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.poi-list li {
+  margin: 0.75rem 0;
+}
+
+.poi-list p {
+  margin: 0.2rem 0 0;
+}
+
+.reply-text {
+  margin: 0 0 0.75rem;
+}
+
+.reply-audio {
+  display: block;
+  width: 100%;
+  margin: 0.75rem 0;
+}
+
+.reply-audio.is-idle {
+  display: none;
+}
+
+.play-button {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.55rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: #2f6f4e;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
