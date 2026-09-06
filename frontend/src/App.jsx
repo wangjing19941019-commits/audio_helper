@@ -1,44 +1,40 @@
-import { useEffect, useState } from "react";
-import { getHealth } from "./api.js";
+import { useMemo, useState } from "react";
+import { detectRecordingMimeType } from "./audio/mime.js";
+import CitySelect from "./components/CitySelect.jsx";
+import LocalPlayback from "./components/LocalPlayback.jsx";
+import RecordButton from "./components/RecordButton.jsx";
 
 export default function App() {
-  const [backendStatus, setBackendStatus] = useState("checking");
+  const mimeType = useMemo(() => detectRecordingMimeType(), []);
+  const [city, setCity] = useState("杭州");
+  const [recording, setRecording] = useState(null);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    let cancelled = false;
-
-    getHealth()
-      .then((response) => {
-        if (cancelled) {
-          return;
-        }
-        const status = response.data?.data?.status;
-        setBackendStatus(status === "ok" ? "ok" : "error");
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setBackendStatus("offline");
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const statusText = {
-    checking: "正在检查后端…",
-    ok: "后端健康检查正常",
-    error: "后端已响应，但健康检查结果异常",
-    offline: "无法连接后端（可先启动 http://localhost:8003）",
-  }[backendStatus];
+  const unsupported = !mimeType;
 
   return (
     <main className="page">
       <h1>语音约碰面地点</h1>
-      <p>第一版支持同一座城市内的两个人。默认城市：杭州。</p>
-      <p className={`status status-${backendStatus}`}>{statusText}</p>
-      <p className="hint">录音与找店功能尚未接入，本页仅用于确认前后端可以打开。</p>
+      <p>第一版支持同一座城市内的两个人。按住按钮说话，松开结束。本轮只做本地录音，不调用找店接口。</p>
+
+      <CitySelect value={city} onChange={setCity} />
+
+      {unsupported ? (
+        <p className="status status-error">
+          当前浏览器不支持 WebM/Opus 录音，请更换 Chrome 或 Edge 后重试。
+        </p>
+      ) : (
+        <RecordButton
+          mimeType={mimeType}
+          disabled={unsupported}
+          onResult={setRecording}
+          onError={setError}
+        />
+      )}
+
+      {error ? <p className="status status-error">{error}</p> : null}
+
+      {recording ? <LocalPlayback recording={recording} /> : null}
     </main>
   );
 }

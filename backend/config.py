@@ -1,4 +1,8 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+BACKEND_ROOT = Path(__file__).resolve().parent
 
 
 class Settings(BaseSettings):
@@ -27,6 +31,13 @@ class Settings(BaseSettings):
     deepseek_model: str = "deepseek-v4-flash"
 
     amap_api_key: str = ""
+
+    storage_dir: str = str(BACKEND_ROOT / "storage")
+    max_upload_bytes: int = 5 * 1024 * 1024
+    min_duration_s: float = 1.0
+    max_duration_s: float = 60.0
+    audio_ttl_hours: int = 24
+    ffprobe_timeout_s: float = 3.0
 
     @property
     def cors_origin_list(self) -> list[str]:

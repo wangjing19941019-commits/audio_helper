@@ -24,6 +24,50 @@ h1 {
   font-size: 1.75rem;
 }
 
+h2 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.city-select {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.city-select input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cfc8bb;
+  border-radius: 0.4rem;
+  font: inherit;
+}
+
+.record-button {
+  display: block;
+  width: 100%;
+  padding: 1.25rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: #2f6f4e;
+  color: #fff;
+  font: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+
+.record-button:disabled {
+  background: #9aa196;
+  cursor: not-allowed;
+}
+
+.record-button.is-recording {
+  background: #b23b2f;
+}
+
 .status {
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
@@ -37,6 +81,17 @@ h1 {
 .status-error,
 .status-offline {
   background: #f8e3d8;
+}
+
+.playback audio {
+  display: block;
+  width: 100%;
+  margin: 0.75rem 0;
+}
+
+.download-link {
+  display: inline-block;
+  color: #1d4f38;
 }
 
 .hint {
