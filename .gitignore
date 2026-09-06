@@ -1,0 +1,29 @@
+# secrets
+.env
+.env.local
+backend/.env
+
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env.bak
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# node
+frontend/node_modules/
+frontend/dist/
+
+# runtime storage (keep directory)
+backend/storage/**
+!backend/storage/.gitkeep
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.log

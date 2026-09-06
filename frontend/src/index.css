@@ -1,0 +1,44 @@
+:root {
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  line-height: 1.5;
+  color: #1a1a1a;
+  background: #f4f1ea;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.page {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+}
+
+h1 {
+  margin: 0 0 1rem;
+  font-size: 1.75rem;
+}
+
+.status {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: #ece8df;
+}
+
+.status-ok {
+  background: #d8efe0;
+}
+
+.status-error,
+.status-offline {
+  background: #f8e3d8;
+}
+
+.hint {
+  color: #5c5c5c;
+}
