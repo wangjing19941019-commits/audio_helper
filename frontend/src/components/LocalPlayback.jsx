@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { recordingFileExtension } from "../audio/mime.js";
 
 function formatDuration(durationMs) {
@@ -17,14 +17,28 @@ function formatSize(size) {
 }
 
 export default function LocalPlayback({ recording }) {
-  const objectUrl = useMemo(() => URL.createObjectURL(recording.blob), [recording.blob]);
+  const [objectUrl, setObjectUrl] = useState("");
   const filename = `meetup-recording.${recordingFileExtension(recording.mimeType)}`;
 
   useEffect(() => {
+    const url = URL.createObjectURL(recording.blob);
+    setObjectUrl(url);
     return () => {
-      URL.revokeObjectURL(objectUrl);
+      URL.revokeObjectURL(url);
     };
-  }, [objectUrl]);
+  }, [recording.blob]);
+
+  function handleDownload(event) {
+    event.preventDefault();
+    const url = URL.createObjectURL(recording.blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 
   return (
     <section className="playback">
@@ -33,10 +47,10 @@ export default function LocalPlayback({ recording }) {
         {formatDuration(recording.durationMs)}，{formatSize(recording.size)}
         {recording.mimeType ? `，${recording.mimeType}` : ""}
       </p>
-      <audio controls src={objectUrl} />
-      <a className="download-link" href={objectUrl} download={filename}>
+      {objectUrl ? <audio controls src={objectUrl} /> : null}
+      <button type="button" className="download-link" onClick={handleDownload}>
         下载录音文件（供后续上传测试）
-      </a>
+      </button>
     </section>
   );
 }
