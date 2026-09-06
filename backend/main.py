@@ -8,6 +8,11 @@ from fastapi.responses import JSONResponse
 
 from api.health import router as health_router
 from api.upload import router as upload_router
+from api.asr import router as asr_router
+from api.extract import router as extract_router
+from api.search import router as search_router
+from api.finalize import router as finalize_router
+from api.audio import router as audio_router
 from config import settings
 from errors import AppError
 
@@ -40,6 +45,16 @@ def _error_payload(request: Request, code: str, message: str, stage: str) -> dic
 def _stage_from_path(path: str) -> str:
     if path.startswith("/upload"):
         return "upload"
+    if path.startswith("/asr"):
+        return "asr"
+    if path.startswith("/extract"):
+        return "extract"
+    if path.startswith("/search"):
+        return "search"
+    if path.startswith("/finalize"):
+        return "finalize"
+    if path.startswith("/audio"):
+        return "audio"
     if path.startswith("/health"):
         return "health"
     return "upload"
@@ -66,7 +81,7 @@ async def handle_validation_error(request: Request, exc: RequestValidationError)
         content=_error_payload(
             request,
             "VALIDATION_ERROR",
-            "请求缺少 file 字段，或字段类型不正确。",
+            "请求缺少必填字段，或字段类型不正确。",
             _stage_from_path(request.url.path),
         ),
     )
@@ -74,3 +89,8 @@ async def handle_validation_error(request: Request, exc: RequestValidationError)
 
 app.include_router(health_router)
 app.include_router(upload_router)
+app.include_router(asr_router)
+app.include_router(extract_router)
+app.include_router(search_router)
+app.include_router(finalize_router)
+app.include_router(audio_router)

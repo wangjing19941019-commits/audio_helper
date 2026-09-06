@@ -1,5 +1,7 @@
 import json
 import logging
+import os
+import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -17,16 +19,104 @@ class ProbeResult:
     codec_name: str
 
 
+def _windows_registry_path() -> str:
+    if os.name != "nt":
+        return ""
+    try:
+        import winreg
+    except ImportError:
+        return ""
+
+    chunks: list[str] = []
+    for root, subkey in (
+        (winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"),
+        (winreg.HKEY_CURRENT_USER, "Environment"),
+    ):
+        try:
+            with winreg.OpenKey(root, subkey) as key:
+                value, _ = winreg.QueryValueEx(key, "Path")
+        except OSError:
+            continue
+        if value:
+            chunks.append(str(value))
+    return os.pathsep.join(chunks)
+
+
+def _merge_windows_path() -> None:
+    extra = _windows_registry_path()
+    if not extra:
+        return
+    current = os.environ.get("PATH", "")
+    seen = {part.lower() for part in current.split(os.pathsep) if part}
+    additions = [part for part in extra.split(os.pathsep) if part and part.lower() not in seen]
+    if additions:
+        os.environ["PATH"] = os.pathsep.join([*additions, current]) if current else os.pathsep.join(additions)
+
+
+def _winget_ffprobe_candidates() -> list[Path]:
+    roots: list[Path] = []
+    local_app = os.environ.get("LOCALAPPDATA")
+    if local_app:
+        roots.append(Path(local_app))
+    home_local = Path.home() / "AppData" / "Local"
+    if home_local not in roots:
+        roots.append(home_local)
+
+    matches: list[Path] = []
+    for root in roots:
+        packages = root / "Microsoft" / "WinGet" / "Packages"
+        if packages.exists():
+            matches.extend(packages.rglob("ffprobe.exe"))
+        link = root / "Microsoft" / "WinGet" / "Links" / "ffprobe.exe"
+        if link.exists():
+            matches.append(link)
+    return matches
+
+
+def _ffprobe_executable() -> str:
+    cached = getattr(_ffprobe_executable, "_cached", None)
+    if cached:
+        return cached
+
+    _merge_windows_path()
+    found = shutil.which("ffprobe")
+    candidates = [Path(found)] if found else []
+    candidates.extend(_winget_ffprobe_candidates())
+    candidates.extend(
+        (
+            Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "ffmpeg" / "bin" / "ffprobe.exe",
+            Path(r"C:\ffmpeg\bin\ffprobe.exe"),
+        )
+    )
+
+    for candidate in candidates:
+        if candidate.is_file():
+            resolved = str(candidate)
+            _ffprobe_executable._cached = resolved
+            os.environ["PATH"] = str(candidate.parent) + os.pathsep + os.environ.get("PATH", "")
+            logger.info("stage=upload ffprobe_path=%s", resolved)
+            return resolved
+
+    raise AppError(
+        500,
+        "INTERNAL_ERROR",
+        "无法校验音频格式，请确认本机已安装 FFmpeg 且 ffprobe 在 PATH 中可用。",
+        "upload",
+    )
+
+
 def _run_ffprobe(args: list[str], timeout: float) -> dict:
+    command = [_ffprobe_executable(), *args]
     try:
         completed = subprocess.run(
-            args,
+            command,
             capture_output=True,
             text=True,
             timeout=timeout,
             check=False,
         )
-    except FileNotFoundError as exc:
+    except OSError as exc:
+        logger.warning("stage=upload ffprobe_exec_failed error=%s", exc)
         raise AppError(
             500,
             "INTERNAL_ERROR",
@@ -69,7 +159,6 @@ def _parse_duration(raw: object) -> float | None:
 def _duration_from_packets(path: Path, timeout: float) -> float | None:
     payload = _run_ffprobe(
         [
-            "ffprobe",
             "-v",
             "error",
             "-select_streams",
@@ -96,7 +185,6 @@ def _duration_from_packets(path: Path, timeout: float) -> float | None:
 def probe_audio(path: Path) -> ProbeResult:
     payload = _run_ffprobe(
         [
-            "ffprobe",
             "-v",
             "error",
             "-select_streams",
@@ -126,7 +214,6 @@ def probe_audio(path: Path) -> ProbeResult:
     if duration is None:
         duration = _parse_duration(audio_stream.get("duration"))
     if duration is None:
-        # Browser WebM often omits EBML Duration; packet timestamps still give length.
         duration = _duration_from_packets(path, timeout=max(settings.ffprobe_timeout_s, 4.0))
     if duration is None:
         raise AppError(422, "INVALID_DURATION", "无法读取录音时长，请重新录制。", "upload")
